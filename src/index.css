@@ -1,0 +1,13 @@
+body {
+  margin: 0;
+}
+
+.input__textfield {
+  color: #8585ad !important;
+  -webkit-text-fill-color: #8585ad !important;
+}
+
+input[type='password'].input__textfield {
+  color: #8585ad !important;
+  -webkit-text-fill-color: #8585ad !important;
+}
