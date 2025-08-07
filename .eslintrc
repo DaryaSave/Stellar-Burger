@@ -1,7 +1,7 @@
 {
   "parser": "@typescript-eslint/parser",
-  "plugins": ["react", "@typescript-eslint", "prettier"],
-  "extends": ["prettier"],
+  "plugins": ["react", "@typescript-eslint"],
+  "extends": [],
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
@@ -10,12 +10,7 @@
     }
   },
   "rules": {
-    "prettier/prettier": [
-      "warn",
-      {
-        "usePrettierrc": true
-      }
-    ],
+    "prettier/prettier": "off",
     "react/react-in-jsx-scope": "off",
     "comma-dangle": "off",
     "use-isnan": ["error", { "enforceForSwitchCase": true }],
