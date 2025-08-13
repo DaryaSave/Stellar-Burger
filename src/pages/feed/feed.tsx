@@ -25,7 +25,7 @@ export const Feed: FC = () => {
     }
 
     return () => {
-      dispatch(closeFeedConnection());
+  dispatch(closeFeedConnection());
     };
   }, [dispatch]);
 
