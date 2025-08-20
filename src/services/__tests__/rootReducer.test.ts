@@ -9,8 +9,38 @@ describe('rootReducer', () => {
   });
 
   it('should return initial state for UNKNOWN_ACTION on undefined state', () => {
-    const initState = rootReducer(undefined as any, { type: '@@INIT' } as any);
-    const unknownState = rootReducer(undefined as any, { type: 'UNKNOWN_ACTION' } as any);
-    expect(unknownState).toEqual(initState);
+    const expectedInitialState = {
+      ingredients: {
+        ingredients: [],
+        isLoading: false,
+        error: null
+      },
+      burgerConstructor: {
+        bun: null,
+        ingredients: []
+      },
+      user: {
+        user: null,
+        isAuthenticated: false,
+        isAuthChecked: false,
+        loading: false,
+        error: null
+      },
+      orders: {
+        currentOrder: null,
+        orders: [],
+        feeds: [],
+        total: 0,
+        totalToday: 0,
+        selectedOrder: null,
+        loading: false,
+        error: null,
+        feedWsConnected: false,
+        userOrdersWsConnected: false,
+        wsError: null
+      }
+    };
+    const unknownState = rootReducer(undefined, { type: 'UNKNOWN_ACTION' });
+    expect(unknownState).toEqual(expectedInitialState);
   });
 });

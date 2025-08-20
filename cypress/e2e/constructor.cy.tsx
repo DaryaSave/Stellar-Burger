@@ -27,13 +27,28 @@ describe('Burger Constructor', () => {
     cy.wait('@getIngredients');
   });
 
+  afterEach(() => {
+    cy.clearCookie('accessToken');
+    cy.window().then((win) => win.localStorage.clear());
+  });
+
   it('добавляет ингредиент в конструктор', () => {
+    // Проверяем, что начинки нет в конструкторе
     cy.contains('h3', 'Начинки').next('ul')
-      .find('[data-cy="ingredient-card"]').first()
-      .within(() => {
+      .find('[data-cy="ingredient-card"]').first().as('firstIngredientCard');
+    cy.get('@firstIngredientCard').find('p').last().invoke('text').then((ingredientName) => {
+      cy.get('[data-cy="constructor-dropzone"]').within(() => {
+        cy.contains(ingredientName).should('not.exist');
+      });
+      // Добавляем начинку
+      cy.get('@firstIngredientCard').within(() => {
         cy.contains('button', 'Добавить').click();
       });
-    cy.get('[data-cy="constructor-ingredient"]').should('exist');
+      // Проверяем, что именно этот ингредиент появился в конструкторе
+      cy.get('[data-cy="constructor-dropzone"]').within(() => {
+        cy.contains(ingredientName).should('exist');
+      });
+    });
   });
 
   it('открывает и закрывает модалку ингредиента (крестик и оверлей)', () => {
@@ -56,16 +71,31 @@ describe('Burger Constructor', () => {
       win.localStorage.setItem('refreshToken', '1');
     });
 
+    // Проверяем, что булки и начинки нет в конструкторе
+    cy.get('[data-cy="constructor-dropzone"]').within(() => {
+      cy.contains('Флюоресцентная булка R2-D3').should('not.exist');
+      cy.contains('Филе Люминесцентного тетраодонтимформа').should('not.exist');
+    });
+
+    // Добавляем булку
     cy.contains('h3', 'Булки').next('ul')
       .find('[data-cy="ingredient-card"]').first()
       .within(() => {
         cy.contains('button', 'Добавить').click();
       });
+    // Проверяем, что булка появилась (верхняя и нижняя)
+    cy.get('[data-cy="constructor-dropzone"]').parent().contains('Флюоресцентная булка R2-D3').should('exist');
+
+    // Добавляем начинку
     cy.contains('h3', 'Начинки').next('ul')
       .find('[data-cy="ingredient-card"]').first()
       .within(() => {
         cy.contains('button', 'Добавить').click();
       });
+    // Проверяем, что начинка появилась
+    cy.get('[data-cy="constructor-dropzone"]').within(() => {
+      cy.contains('Филе Люминесцентного тетраодонтимформа').should('exist');
+    });
 
     // Оформляем заказ
     cy.get('[data-cy="order-button"]').click();
@@ -73,9 +103,10 @@ describe('Burger Constructor', () => {
     cy.get('[data-cy="order-number"]').should('contain', '12345');
     cy.get('[data-cy="modal-close"]').click();
     cy.get('[data-cy="order-modal"]').should('not.exist');
-    cy.get('[data-cy="constructor-ingredient"]').should('not.exist');
-
-  cy.clearCookie('accessToken');
-  cy.window().then((win) => win.localStorage.clear());
+    // Проверяем, что ингредиенты исчезли из конструктора
+    cy.get('[data-cy="constructor-dropzone"]').within(() => {
+      cy.contains('Флюоресцентная булка R2-D3').should('not.exist');
+      cy.contains('Филе Люминесцентного тетраодонтимформа').should('not.exist');
+    });
   });
 });
