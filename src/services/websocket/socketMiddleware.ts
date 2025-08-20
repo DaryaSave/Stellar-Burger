@@ -119,11 +119,7 @@ export const socketMiddleware = (): Middleware => {
     if (type === WS_CONNECTION_START) {
       const { url, wsType } = payload;
 
-      // Не инициируем подключение, если URL пустой (например, нет токена для приватного фида)
       if (!url) {
-        console.warn(
-          `WebSocket start skipped: empty URL for ${wsType}. Check token or URL builder.`
-        );
         return next(action);
       }
 
@@ -131,10 +127,6 @@ export const socketMiddleware = (): Middleware => {
         wsConnectionAttempts[wsType as keyof typeof wsConnectionAttempts] >=
         MAX_CONNECTION_ATTEMPTS
       ) {
-        console.warn(
-          `WebSocket connection limit reached for ${wsType}. Skipping connection attempt.`
-        );
-
         resetConnectionAttempts(wsType);
         return next(action);
       }
@@ -144,8 +136,7 @@ export const socketMiddleware = (): Middleware => {
         const status = existing.getStatus();
 
         // Если соединение уже устанавливается или активно — не дергаем повторно
-        if (status === 'CONNECTING' || status === 'ONLINE') {
-          console.info(`WebSocket ${wsType}: already ${status}, skip restart`);
+  if (status === 'CONNECTING' || status === 'ONLINE') {
           return next(action);
         }
 

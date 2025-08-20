@@ -6,15 +6,13 @@ const request = async (endpoint, options = {}) => {
 
   // Если токен истёк, пробуем обновить
   if (res.status === 401 && localStorage.getItem('refreshToken')) {
-    console.warn('Токен устарел, пробуем обновить...');
     const refreshRes = await fetch(`${API_URL}/auth/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: localStorage.getItem('refreshToken') })
     });
 
-    if (!refreshRes.ok) {
-      console.error('Не удалось обновить токен');
+  if (!refreshRes.ok) {
       throw new Error('Unauthorized');
     }
 

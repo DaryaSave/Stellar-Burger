@@ -36,16 +36,17 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
         Выберите булки
       </div>
     )}
-    <ul className={styles.elements}>
+  <ul className={styles.elements} data-cy='constructor-dropzone'>
       {constructorItems.ingredients.length > 0 ? (
         constructorItems.ingredients.map(
           (item: TConstructorIngredient, index: number) => (
-            <BurgerConstructorElement
-              ingredient={item}
-              index={index}
-              totalItems={constructorItems.ingredients.length}
-              key={item.id}
-            />
+            <div data-cy='constructor-ingredient' key={item.id}>
+              <BurgerConstructorElement
+                ingredient={item}
+                index={index}
+                totalItems={constructorItems.ingredients.length}
+              />
+            </div>
           )
         )
       ) : (
@@ -84,6 +85,7 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
         size='large'
         children='Оформить заказ'
         onClick={onOrderClick}
+  data-cy='order-button'
       />
     </div>
 
