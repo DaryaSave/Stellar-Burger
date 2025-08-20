@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useSelector } from '../../services/store';
 import {
   BurgerIcon,
@@ -50,6 +50,11 @@ export const AppHeader: FC = () => {
     setIsProfileSubmenuOpen(!isProfileSubmenuOpen);
   };
 
+  const isConstructorActive =
+    location.pathname === '/' || location.pathname.startsWith('/ingredients');
+  const isFeedActive = location.pathname.startsWith('/feed');
+  const isProfileActive = location.pathname.startsWith('/profile');
+
   return (
     <>
       <header className={styles.header}>
@@ -65,36 +70,30 @@ export const AppHeader: FC = () => {
 
           {}
           <div className={styles.menu_part_left}>
-            <div
-              className={`${styles.link} ${location.pathname === '/' ? styles.link_active : ''}`}
-              onClick={handleConstructorClick}
-              style={{
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center'
+            <Link
+              to='/'
+              className={`${styles.link} ${isConstructorActive ? styles.link_active : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleConstructorClick();
               }}
+              style={{ display: 'flex', alignItems: 'center' }}
             >
-              <BurgerIcon
-                type={location.pathname === '/' ? 'primary' : 'secondary'}
-              />
-              <p className='text text_type_main-default ml-2 mr-10'>
-                Конструктор
-              </p>
-            </div>
-            <div
-              className={`${styles.link} ${location.pathname === '/feed' ? styles.link_active : ''}`}
-              onClick={handleFeedClick}
-              style={{
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center'
+              <BurgerIcon type={isConstructorActive ? 'primary' : 'secondary'} />
+              <p className='text text_type_main-default ml-2 mr-10'>Конструктор</p>
+            </Link>
+            <Link
+              to='/feed'
+              className={`${styles.link} ${isFeedActive ? styles.link_active : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleFeedClick();
               }}
+              style={{ display: 'flex', alignItems: 'center' }}
             >
-              <ListIcon
-                type={location.pathname === '/feed' ? 'primary' : 'secondary'}
-              />
+              <ListIcon type={isFeedActive ? 'primary' : 'secondary'} />
               <p className='text text_type_main-default ml-2'>Лента заказов</p>
-            </div>
+            </Link>
           </div>
           <div
             className={styles.logo}
@@ -103,22 +102,20 @@ export const AppHeader: FC = () => {
           >
             <Logo className='' />
           </div>
-          <div
-            className={`${styles.link_position_last} ${styles.desktopOnly} ${location.pathname.startsWith('/profile') ? styles.link_active : ''}`}
-            onClick={handleProfileClick}
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+          <Link
+            to={isAuthenticated ? '/profile' : '/login'}
+            className={`${styles.link} ${styles.link_position_last} ${styles.desktopOnly} ${isProfileActive ? styles.link_active : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              handleProfileClick();
+            }}
+            style={{ display: 'flex', alignItems: 'center' }}
           >
-            <ProfileIcon
-              type={
-                location.pathname.startsWith('/profile')
-                  ? 'primary'
-                  : 'secondary'
-              }
-            />
+            <ProfileIcon type={isProfileActive ? 'primary' : 'secondary'} />
             <p className='text text_type_main-default ml-2'>
               {user?.name || 'Личный кабинет'}
             </p>
-          </div>
+          </Link>
         </nav>
       </header>
 
@@ -147,13 +144,7 @@ export const AppHeader: FC = () => {
                   className={styles.mobileMenuItem}
                   onClick={toggleProfileSubmenu}
                 >
-                  <ProfileIcon
-                    type={
-                      location.pathname.startsWith('/profile')
-                        ? 'primary'
-                        : 'secondary'
-                    }
-                  />
+                  <ProfileIcon type={isProfileActive ? 'primary' : 'secondary'} />
                   <span className='text text_type_main-default ml-2'>
                     Личный кабинет
                   </span>
@@ -226,26 +217,15 @@ export const AppHeader: FC = () => {
               </div>
 
               {}
-              <div
-                className={styles.mobileMenuItem}
-                onClick={handleConstructorClick}
-              >
-                <BurgerIcon
-                  type={location.pathname === '/' ? 'primary' : 'secondary'}
-                />
-                <span className='text text_type_main-default ml-2'>
-                  Конструктор бургеров
-                </span>
-              </div>
+              <Link to='/' className={styles.mobileMenuItem} onClick={(e) => { e.preventDefault(); handleConstructorClick(); }}>
+                <BurgerIcon type={location.pathname === '/' ? 'primary' : 'secondary'} />
+                <span className='text text_type_main-default ml-2'>Конструктор бургеров</span>
+              </Link>
 
-              <div className={styles.mobileMenuItem} onClick={handleFeedClick}>
-                <ListIcon
-                  type={location.pathname === '/feed' ? 'primary' : 'secondary'}
-                />
-                <span className='text text_type_main-default ml-2'>
-                  Лента заказов
-                </span>
-              </div>
+              <Link to='/feed' className={styles.mobileMenuItem} onClick={(e) => { e.preventDefault(); handleFeedClick(); }}>
+                <ListIcon type={isFeedActive ? 'primary' : 'secondary'} />
+                <span className='text text_type_main-default ml-2'>Лента заказов</span>
+              </Link>
             </div>
           </div>
         </div>

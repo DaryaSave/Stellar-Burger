@@ -112,13 +112,20 @@ const resetConnectionAttempts = (wsType: string) => {
 
 export const socketMiddleware = (): Middleware => {
   const connections: WSConnections = {};
-
   return (store) => (next) => (action: any) => {
     const { dispatch } = store;
     const { type, payload } = action;
 
     if (type === WS_CONNECTION_START) {
       const { url, wsType } = payload;
+
+      // Не инициируем подключение, если URL пустой (например, нет токена для приватного фида)
+      if (!url) {
+        console.warn(
+          `WebSocket start skipped: empty URL for ${wsType}. Check token or URL builder.`
+        );
+        return next(action);
+      }
 
       if (
         wsConnectionAttempts[wsType as keyof typeof wsConnectionAttempts] >=
@@ -133,7 +140,17 @@ export const socketMiddleware = (): Middleware => {
       }
 
       if (connections[wsType as keyof WSConnections]) {
-        connections[wsType as keyof WSConnections]!.disconnect();
+        const existing = connections[wsType as keyof WSConnections]!;
+        const status = existing.getStatus();
+
+        // Если соединение уже устанавливается или активно — не дергаем повторно
+        if (status === 'CONNECTING' || status === 'ONLINE') {
+          console.info(`WebSocket ${wsType}: already ${status}, skip restart`);
+          return next(action);
+        }
+
+        // В OFFLINE можно безопасно пересоздать соединение
+        existing.disconnect();
         delete connections[wsType as keyof WSConnections];
       }
 
@@ -168,7 +185,7 @@ export const socketMiddleware = (): Middleware => {
         }
       };
 
-      try {
+  try {
         const wsService = new WebSocketService(url, onMessage, onStatusChange);
         connections[wsType as keyof WSConnections] = wsService;
         wsService.connect();
@@ -183,8 +200,8 @@ export const socketMiddleware = (): Middleware => {
           );
         }
       }
+      return next(action);
     }
-
     if (type === WS_CONNECTION_CLOSE) {
       const { wsType } = payload;
       const connection = connections[wsType as keyof WSConnections];
@@ -199,7 +216,7 @@ export const socketMiddleware = (): Middleware => {
 };
 
 export const startFeedConnection = () => {
-  const url = createWebSocketUrl('/all');
+  const url = createWebSocketUrl();
   return wsFeedConnectionStart(url);
 };
 
