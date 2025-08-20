@@ -7,18 +7,14 @@ export const createWebSocketUrl = (
   endpoint: string = '',
   withAuth: boolean = false
 ): string => {
-  // Приватный фид: /orders?token=...
   if (withAuth) {
     const accessToken = getCookie('accessToken');
     if (!accessToken) {
-      console.error('No access token found for private WebSocket connection');
       return '';
     }
   const token = encodeURIComponent(accessToken.replace(/^Bearer\s+/i, ''));
   return `${WS_BASE_URL}/orders?token=${token}`;
   }
-
-  // Общий фид: /orders/all
   return `${WS_BASE_URL}/orders/all`;
 };
 
@@ -92,9 +88,6 @@ export class WebSocketService {
         Math.min(delay, 30000)
       );
     } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.warn(
-        'WebSocket: Max reconnection attempts reached. Stopping reconnections.'
-      );
       this.onStatusChange('OFFLINE');
     }
   }
@@ -104,17 +97,11 @@ export class WebSocketService {
       return;
     }
 
-    try {
-      new URL(this.url);
-    } catch (error) {
-      console.error('Invalid WebSocket URL:', this.url);
-      return;
-    }
+  try { new URL(this.url); } catch { return; }
 
     this.isConnecting = true;
     this.onStatusChange('CONNECTING');
 
-    // Если приватное подключение (/orders?token=...), пробуем заранее обновить токен
     try {
       let finalUrl = this.url;
       if (this.url.includes('/orders?token=')) {
@@ -126,7 +113,6 @@ export class WebSocketService {
           }
           finalUrl = updatedUrl;
         } catch (e) {
-          console.warn('WebSocket token refresh failed, proceeding with existing token', e);
         }
       }
 
@@ -154,49 +140,30 @@ export class WebSocketService {
       this.isConnecting = false;
       this.onStatusChange('OFFLINE');
 
-      // Если закрыли вручную (например, при размонтировании компонента) — не пытаемся переподключаться
       if (this.manualClose) {
         this.manualClose = false;
         return;
       }
 
-      // Игнорируем нормальное закрытие
       if (event.code === 1000) {
         return;
       }
 
-      // Для потери соединения (1006) делаем один тихий быстрый повтор через 2с,
-      // без экспоненциальной задержки и лишних предупреждений
       if (event.code === 1006) {
         if (this.reconnectTimer) {
           clearTimeout(this.reconnectTimer);
         }
-        if (this.reconnectAttempts === 0) {
-          // Сообщим один раз в менее навязчивой форме
-          console.info(
-            `WebSocket closed (1006: ${this.getCloseReason(event.code)}). Retrying once in 2s...`
-          );
-        }
         this.reconnectTimer = setTimeout(() => {
-          // После одиночной попытки блокируем дальнейшие экспоненциальные ретраи
           this.reconnectAttempts = this.maxReconnectAttempts - 1;
           this.connect();
         }, 2000);
         return;
       }
 
-      // Для остальных кодов понижаем уровень логирования и используем стандартный бэкофф
       if (event.code === 1002 || event.code === 1003) {
-        console.info(
-          `WebSocket closed with code: ${event.code} (${this.getCloseReason(event.code)}). Will backoff and retry.`
-        );
         this.reconnectAttempts = Math.max(
           this.reconnectAttempts,
           this.maxReconnectAttempts - 1
-        );
-      } else {
-        console.debug(
-          `WebSocket closed with code: ${event.code}, reason: ${event.reason}`
         );
       }
       this.tryReconnect();
@@ -230,14 +197,12 @@ export class WebSocketService {
       const current = this.ws;
       try {
         if (current.readyState === WebSocket.CONNECTING) {
-          // Дождёмся подключения и корректно закроем, чтобы избежать предупреждения браузера
           const handleOpenAndClose = () => {
             try {
               current.close(1000, 'Normal closure');
             } catch {}
           };
           current.addEventListener('open', handleOpenAndClose, { once: true });
-          // Фолбэк: если не откроется за 3с — попробуем закрыть как есть
           setTimeout(() => {
             try {
               if (current.readyState === WebSocket.CONNECTING) {
@@ -249,7 +214,6 @@ export class WebSocketService {
           current.close(1000, 'Normal closure');
         }
       } catch (_) {
-        // Игнорируем ошибки закрытия
       }
       this.ws = null;
     }

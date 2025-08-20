@@ -10,6 +10,7 @@
     }
   },
   "rules": {
+  "no-console": "error",
     "prettier/prettier": "off",
     "react/react-in-jsx-scope": "off",
     "comma-dangle": "off",
@@ -58,5 +59,13 @@
     "react": {
       "version": "detect"
     }
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "cypress/**"],
+      "rules": {
+        "no-console": ["warn", { "allow": ["warn", "error"] }]
+      }
+    }
+  ]
 }
